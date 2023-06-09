@@ -140,6 +140,6 @@ def hello_world():
     return jsonify({"response": True,"result": "Please Send Post request to endpoint /api/runJob!"})
 
 if __name__ == "__main__":
-    threading.Thread(target=lambda: app.run()).start()
+    app.run()
     
     
