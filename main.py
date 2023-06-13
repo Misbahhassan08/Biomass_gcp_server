@@ -227,7 +227,7 @@ def rack_status():
                 "errorList": ["Cassette insert error (333b) – Bay -3A", "No error - Bay -3B"]
             }
         ]
-    return jsonify({"response":True , "result":dict})
+    return jsonify(dict)
     pass # end of rack_status function
 @app.route("/")
 def hello_world():
