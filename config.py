@@ -22,13 +22,13 @@ my_db = {
                                }
 
 
-#subscribe_request_metadata = 'biogas/client/request/database/csvtbl/data'
-#subscribe_request_csv_of = 'biogas/client/request/database/metadatatbl/data'
-##subscribe_insert_metadata = 'biogas/rpi/request/database/insert/metadatatbl/data' # This operation temporary We will remove it after adding in raspberry pi with raspberry pi csv file data
-#subscribe_normalized_v4 = 'biogas/client/request/normlized'
-#publish_response_metadata = 'biogas/server/response/database/csvtbl/data'
-#publish_response_csv_of = 'biogas/server/response/database/metadatatbl/data'
-#publish_mormalized_v4 = 'biogas/server/response/normlized'
+subscribe_request_metadata = 'biogas/client/request/database/csvtbl/data'
+subscribe_request_csv_of = 'biogas/client/request/database/metadatatbl/data'
+subscribe_insert_metadata = 'biogas/rpi/request/database/insert/metadatatbl/data' # This operation temporary We will remove it after adding in raspberry pi with raspberry pi csv file data
+subscribe_normalized_v4 = 'biogas/client/request/normlized'
+publish_response_metadata = 'biogas/server/response/database/csvtbl/data'
+publish_response_csv_of = 'biogas/server/response/database/metadatatbl/data'
+publish_mormalized_v4 = 'biogas/server/response/normlized'
 
 
 #topic_insert_metadata = 'biogas/mqtt/insert_database_metadata'

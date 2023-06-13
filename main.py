@@ -1,11 +1,11 @@
-#import pandas as pd
+import pandas as pd
 from time import sleep
 import datetime
 from flask import Flask, jsonify, send_file, redirect, url_for, request
 from flask_cors import CORS, cross_origin
 import threading
 import pymysql
-#import csv
+import csv
 import json
 import time
 from config import *
@@ -37,6 +37,16 @@ class MyDataBase:
          #   print(f" Data is = {i}")
          self.cursor.close() #Closing the cursor
          return output # end of fetchTableData function
+    def fetchSettingsWithGroupID(self, tableName,GroupID):
+         self.cursor = self.connection.cursor()
+         self.cursor.execute(f""" SELECT * from {tableName} WHERE GroupID={GroupID}""")
+         self.cursor.connection.commit()
+         output = self.cursor.fetchall()
+         #print(f"data:{output}")
+         #for i in output:
+         #   print(f" Data is = {i}")
+         self.cursor.close() #Closing the cursor
+         return output # end of fetchTableData function
     def fetchSelectedData(self, tableName,Data_Point):
          self.cursor = self.connection.cursor()
          self.cursor.execute(f""" SELECT * from {tableName} WHERE Data_Point = {Data_Point}""")
@@ -49,6 +59,7 @@ class MyDataBase:
          return output # end of fetchSelectedData function
 
     def insertToDB(self, query, values, table_name):
+        metadata = MetaData()
         self.cursor = self.connection.cursor()
         self.cursor.execute(query, values)
         self.cursor.connection.commit()
@@ -56,15 +67,62 @@ class MyDataBase:
         self.cursor.execute(f""" SELECT * from {table_name}""")
         output = self.cursor.fetchall()
         print(f"data:{output}")
-        row = 0
-        for i in output:
-            data = i[self.metadata.CsvfileID]
-            row = data
+        #row = 0
+        #for i in output:
+            #data = i[metadata.CsvfileID]
+            #row = data
         #Closing the cursor
         self.cursor.close()
 
-        return row # end of insertToDB function
+        #return row # end of insertToDB function
+@app.route("/api/save_fav_setting" , methods=['POST'])
+def save_fav_settings():
+    db = MyDataBase()
+    group_fav_settings_tbl = 'group_fav_settings_tbl'
+    if request.method == 'POST':
+        parsedjson = request.get_json()
+        GroupID = parsedjson['GroupID']
+        SettingsName = parsedjson['Fav_setting_name']
+        query = """INSERT INTO group_fav_settings_tbl (GroupID,SettingsName,SettingObj) VALUES (%s,%s,%s)"""
+        values = (GroupID,SettingsName,str(json.dumps(parsedjson)))
+        NewID = db.insertToDB(query,values,group_fav_settings_tbl) # Query , Value , Table
 
+        print(f"DATA SAVED : {NewID}")
+        savedData = db.fetchTableData(group_fav_settings_tbl)
+        gfsid = {'GFSID':savedData[len(savedData)-1]['GFSID']}
+        print(f"Saved data is with GFSID : {savedData}")
+    return jsonify({"response": False,"result": gfsid})
+
+
+@app.route("/api/get_list_of_fav_settings" , methods=['POST'])
+def get_setting_list():
+    db = MyDataBase()
+    group_fav_settings_tbl = "group_fav_settings_tbl"
+    if request.method == 'POST':
+        parsedjson = request.get_json()
+        GroupID = parsedjson[0]['GroupID']
+        print(f"Fetching data of group ID is: {GroupID}")
+        group_fav_settings_Data = db.fetchSettingsWithGroupID(group_fav_settings_tbl,GroupID=1)
+    return jsonify({"response": False,"result": group_fav_settings_Data})
+
+@app.route("/api/get_list_of_group" , methods=['GET'])
+def get_group_list():
+    db = MyDataBase()
+    
+    #grouptbl = "grouptbl"
+    #CsvfileID = 3
+    #GroupName = "Group#1"
+    
+    if request.method == 'GET':
+        
+        #query = """UPDATE grouptbl SET CsvfileID=%s WHERE CsvfileID=%s"""
+        #values = (CsvfileID,1)
+        #db.insertToDB(query,values,grouptbl) # query , value , table
+        #print(f"Last added data is : {lastData}")
+        
+        grouptblData = db.fetchTableData("grouptbl")
+
+    return jsonify({"response": False,"result": [grouptblData]})
 
 @app.route("/api/get_graph_meta_data" , methods=['POST', 'GET'])
 def get_graph_meta_data():
@@ -94,10 +152,8 @@ def get_graph_meta_data():
                 rawDataPoint = x[metadata.Data_Point]
             singleDataPointData = {"Data_Point": rawDataPoint,"Samples": data}
             totalData.append(singleDataPointData)
+            data = []
     print(totalData)
-    #with open('test.csv', 'w', newline='') as file:
-    #    csv_writer = csv.writer(file)
-    #    csv_writer.writerow(totalData)
     return jsonify({"response": False,"result": totalData})
 
 
@@ -134,12 +190,48 @@ def get_meta_data():
 
         return jsonify({"response": False,"result": data})
     pass
-
+@app.route("/api/rack-status")
+def rack_status():
+    dict = [
+            {
+                "rackNum": 1,
+                "temp": 36,
+                "progress": 10,
+                "status": "Running",
+                "openBay": 2,
+                "running": 1,
+                "complete": 2,
+                "bayError": 1,
+                "errorList": ["Cassette insert error (111b) – Bay -1A", "No error - Bay -1B"]
+            },
+            {
+                "rackNum": 2,
+                "temp": 56,
+                "progress": 40,
+                "status": "Error",
+                "openBay": 1,
+                "running": 0,
+                "complete": 1,
+                "bayError": 3,
+                "errorList": ["Cassette insert error (222b) – Bay -2A", "No error - Bay -2B"]
+            },
+            {
+                "rackNum": 3,
+                "temp": 6,
+                "progress": 100,
+                "status": "Completed",
+                "openBay": 0,
+                "running": 0,
+                "complete": 5,
+                "bayError": 0,
+                "errorList": ["Cassette insert error (333b) – Bay -3A", "No error - Bay -3B"]
+            }
+        ]
+    return jsonify({"response":True , "result":dict})
+    pass # end of rack_status function
 @app.route("/")
 def hello_world():
     return jsonify({"response": True,"result": "Please Send Post request to endpoint /api/runJob!"})
 
 if __name__ == "__main__":
-    app.run()
-    
-    
+    threading.Thread(target=lambda: app.run(port=8000, debug=True, use_reloader=False)).start()
