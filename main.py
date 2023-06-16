@@ -93,6 +93,14 @@ def save_fav_settings():
         print(f"Saved data is with GFSID : {savedData}")
     return jsonify({"response": False,"result": gfsid})
 
+@app.route("/api/check_login", methods=['GET', 'POST'])
+def check_login():
+    db = MyDataBase()
+    loginData = db.fetchTableData("Usertbl")
+    #[{'UserID': 1, '_username': 'acenxion', '_password': 'acxbio', 'role': 'admin', 'last_login_date_time': '0000-00-00 00:00:00', 'last_logout_date_time': '0000-00-00 00:00:00'}]
+    _dn_uname = loginData[0]["_username"]
+    _dn_password = loginData[0]["_password"]
+    return jsonify({"uname":_dn_uname, "pass":_dn_password})
 
 @app.route("/api/get_list_of_fav_settings" , methods=['POST'])
 def get_setting_list():
