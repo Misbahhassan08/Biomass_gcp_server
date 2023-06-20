@@ -75,6 +75,19 @@ class MyDataBase:
         self.cursor.close()
 
         #return row # end of insertToDB function
+@app.route("/api/add_group" , methods=['POST'])
+def add_group():
+    db = MyDataBase()
+    CsvfileID = 5
+    table_name = 'grouptbl'
+    if request.method == 'POST':
+        parsedJson = request.get_json()
+        query = """INSERT INTO grouptbl (CsvfileID,GroupName) VALUES(%s,%s)"""
+        values = (CsvfileID,parsedJson['group_name'])
+        db.insertToDB(query, values, table_name) # query, values, table_name
+        #print(parsedJson['group_name'])
+
+    return jsonify({"response": False,"result": ["Success"]})
 @app.route("/api/save_fav_setting" , methods=['POST'])
 def save_fav_settings():
     db = MyDataBase()
@@ -110,7 +123,7 @@ def get_setting_list():
         parsedjson = request.get_json()
         GroupID = parsedjson[0]['GroupID']
         print(f"Fetching data of group ID is: {GroupID}")
-        group_fav_settings_Data = db.fetchSettingsWithGroupID(group_fav_settings_tbl,GroupID=1)
+        group_fav_settings_Data = db.fetchSettingsWithGroupID(group_fav_settings_tbl,GroupID)
     return jsonify({"response": False,"result": group_fav_settings_Data})
 
 @app.route("/api/get_list_of_group" , methods=['GET'])
